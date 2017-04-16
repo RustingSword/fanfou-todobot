@@ -53,7 +53,13 @@
     !due task_id due_date
 
 - `task_id`: `!list todo`命令返回的任务列表中，相应任务的序号
-- `due_date`: 日期，格式参见 [`dateparser`](https://github.com/scrapinghub/dateparser) 支持的格式，包括一些自然语言格式
+- `due_date`: 日期，格式参见 [`dateparser`](https://github.com/scrapinghub/dateparser) 支持的格式，包括一些自然语言格式，比如"in 2 days"会解析为两天（48小时）之后。不过还是建议用数字形式，否则可能会解析成错误的结果。支持的数字形式也比较灵活，比如常见的"2017.6.10 13:30"/"20:40"，不加年份默认为当年，不加日期默认为当天
+
+示例:
+
+- `!due 3 13:30`
+- `!due 2 2018.3.12`
+- `!due 5 in 3 days`
 
 #### 修改提醒方式
 
@@ -75,6 +81,12 @@
 
 - `task`: 任务描述
 - `due_date`: 任务截止日期，格式见上，可选，如果有`due_date`，在`task`之后添加竖线`|`分隔
+
+示例:
+
+- `跑步`
+- `修改ppt | 4.18 13:00`
+- `半铁 | 2018.6.30`
 
 # Todo
 
