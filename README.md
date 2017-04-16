@@ -82,3 +82,7 @@ TodoBot 的 Todo……
 
 1. 支持修改非`todo`状态的任务（主要是确定任务序号）
 2. 支持单个任务的提醒（如截止时间前半小时发送提醒消息），目前只能每天提醒所有未完成的任务
+
+# 致谢
+
+`fanfou.py` 和部分代码来自 [`fanfou-bot`](https://github.com/akgnah/fanfou-bot/blob/master/whale/view.py) 项目
