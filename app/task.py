@@ -23,6 +23,8 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
         return parse_task(user_id, data, user_name, msg_type)
 
     user = User.query.filter_by(user_id=user_id).first()
+    if not user:
+        return u'还没有创建任务'
     if data.startswith('!msg'):
         msg_type = data.split()[1].strip()
         if msg_type in ('public', 'private'):
