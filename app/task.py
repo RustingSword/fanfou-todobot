@@ -58,7 +58,10 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
     if len(data) < 2:
         return u'没有指定任务序号'
     command = data[0]
-    task_id = int(data[1]) - 1
+    try:
+        task_id = int(data[1]) - 1
+    except:
+        return u'wrong task id'
     task = Task.query.filter_by(user=user).offset(task_id).first()
     if not task:
         return u'没有找到指定任务'

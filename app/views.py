@@ -39,6 +39,8 @@ def check_msg(msg_num):
             user_name = item['user']['name']
             reply = parse_msg(user_id, text, user_name)
             user = User.query.filter_by(user_id=user_id).first()
+            if not user:
+                reply = 'no tasks'
             if user.msg_type == 'private':
                 client.send_dm(reply, user_id)
             else:
@@ -76,6 +78,8 @@ def check_dm(dm_num):
             client.delete_dm(item['id'])
             reply = parse_msg(user_id, text, user_name, 'private')
             user = User.query.filter_by(user_id=user_id).first()
+            if not user:
+                reply = 'no tasks'
             if user.msg_type == 'private':
                 client.send_dm(reply, user_id)
             else:

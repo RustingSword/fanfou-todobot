@@ -37,7 +37,7 @@ class Task(db.Model):
         return '<Task %r>' % self.id
 
 class MessageID(db.Model):
-    __tablename__ = 'modelid'
+    __tablename__ = 'messageid'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(15), nullable=False)
     message_id = db.Column(db.String, nullable=False)
