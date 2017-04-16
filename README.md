@@ -97,4 +97,4 @@ TodoBot 的 Todo……
 
 # 致谢
 
-`fanfou.py` 和部分代码来自 [`fanfou-bot`](https://github.com/akgnah/fanfou-bot/blob/master/whale/view.py) 项目
+`fanfou.py` 和部分代码来自 [`fanfou-bot`](https://github.com/akgnah/fanfou-bot) 项目
