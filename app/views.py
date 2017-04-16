@@ -34,6 +34,8 @@ def check_msg(msg_num):
             if newest_msg_ts < msg_timestamp:
                 newest_msg_ts = msg_timestamp
                 newest_msg_id = item['id']
+            if not item['text'].startswith('@TodoBot'):
+                continue
             text = item['text'].replace('@TodoBot ', '').strip()
             user_id = item['user']['id']
             user_name = item['user']['name']
