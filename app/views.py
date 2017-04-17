@@ -37,7 +37,7 @@ def check_msg(msg_num):
             if not item['text'].startswith('@TodoBot'):
                 continue
             text = item['text'].replace('@TodoBot ', '').strip()
-            text.replace('@', '#')
+            text = text.replace('@', '#')
             user_id = item['user']['id']
             user_name = item['user']['name']
             reply = parse_msg(user_id, text, user_name)
@@ -76,7 +76,7 @@ def check_dm(dm_num):
                 newest_msg_ts = msg_timestamp
                 newest_msg_id = item['id']
             text = htmlec(item['text'].strip())
-            text.replace('@', '#')
+            text = text.replace('@', '#')
             user_id = item['sender']['id']
             user_name = item['sender']['name']
             client.delete_dm(item['id'])
