@@ -12,7 +12,7 @@ class FanfouClient:
         try:
             resp = self.client.request('/account/notification', 'GET', body)
         except Exception as e:
-            print 'error getting notification: ' + e.message
+            print 'error getting notification: ' + repr(e)
             return 0, 0
         data = json.loads(resp.read())
         return data.get('mentions', 0), data.get('direct_messages', 0)
@@ -24,7 +24,7 @@ class FanfouClient:
         try:
             resp = self.client.request('/statuses/mentions', 'GET', body)
         except Exception as e:
-            print 'error getting msg list: ' + e.message
+            print 'error getting msg list: ' + repr(e)
             return []
         return json.loads(resp.read())
 
@@ -35,7 +35,7 @@ class FanfouClient:
         try:
             resp = self.client.request('/direct_messages/inbox', 'GET', body)
         except Exception as e:
-            print 'error getting dm list: ' + e.message
+            print 'error getting dm list: ' + repr(e)
             return []
         return json.loads(resp.read())
 
@@ -65,7 +65,7 @@ class FanfouClient:
                 try:
                     self.client.request('/statuses/update', 'POST', body)
                 except Exception as e:
-                    print 'error sending msg: ' + e.message
+                    print 'error sending msg: ' + repr(e)
         else:
             body = {
                 'status': '@%s\n%s' % (user_name, msg.encode('utf-8')),
@@ -74,7 +74,7 @@ class FanfouClient:
             try:
                 self.client.request('/statuses/update', 'POST', body)
             except Exception as e:
-                print 'error sending msg: ' + e.message
+                print 'error sending msg: ' + repr(e)
 
     def send_dm(self, msg='test', user_id=None):
         user_id = user_id.encode('utf-8')
@@ -89,7 +89,7 @@ class FanfouClient:
                 try:
                     self.client.request('/direct_messages/new', 'POST', body)
                 except Exception as e:
-                    print 'error sending dm: ' + e.message
+                    print 'error sending dm: ' + repr(e)
         else:
             body = {
                 'user': user_id,
@@ -99,10 +99,10 @@ class FanfouClient:
             try:
                 self.client.request('/direct_messages/new', 'POST', body)
             except Exception as e:
-                print 'error sending dm: ' + e.message
+                print 'error sending dm: ' + repr(e)
 
     def delete_dm(self, dm_id):
         try:
             self.client.request('/direct_messages/destroy', 'POST', {'id': dm_id})
         except Exception as e:
-            print 'error deleting dm: ' + e.message
+            print 'error deleting dm: ' + repr(e)
