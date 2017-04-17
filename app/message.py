@@ -1,21 +1,11 @@
 #! coding: utf-8
-from . import app
 import fanfou
 import json
 import math
 
 class FanfouClient:
-    def __init__(self):
-        self.client = fanfou.OAuth(
-            {
-                'key': app.config.get('FANFOU_CONSUMER_KEY'),
-                'secret': app.config.get('FANFOU_CONSUMER_SECRET')
-            },
-            {
-                'key': app.config.get('FANFOU_AUTH_KEY'),
-                'secret': app.config.get('FANFOU_AUTH_SECRET')
-            }
-        )
+    def __init__(self, consumer_token, access_token):
+        self.client = fanfou.OAuth(consumer_token, access_token)
 
     def get_notification(self):
         body = dict(mode='lite')
@@ -37,17 +27,27 @@ class FanfouClient:
         resp = self.client.request('/direct_messages/inbox', 'GET', body)
         return json.loads(resp.read())
 
+    # split message into pieces shorter than 140 characters
+    def split_msg(self, msg, piece_len=130):
+        assert(piece_len <= 140)
+        if len(msg) <= piece_len:
+            return [msg.encode('utf-8')]
+        num_msg_piece = int(math.ceil(len(msg) * 1.0 / piece_len))
+        msg_pieces = [
+            msg[piece_len * p: piece_len * p + piece_len].encode('utf-8') for \
+                    p in range(num_msg_piece)
+        ]
+
+        return msg_pieces
+
     def send_msg(self, msg='test', user_id=None, user_name=None):
         user_name = user_name.encode('utf-8')
         user_id = user_id.encode('utf-8')
         if len(msg) > 140:
-            num_msg_piece = int(math.ceil(len(msg) / 130.0))
-            for piece in range(num_msg_piece):
+            msg_pieces = self.split_msg(msg)
+            for i, piece in enumerate(msg_pieces):
                 body = {
-                    'status': '@%s\n(%d/%d) %s' % (
-                        piece+1, num_msg_piece, user_name,
-                        msg[130 * piece: 130 * piece + 130].encode('utf-8')
-                    ),
+                    'status': '@%s\n(%d/%d) %s' % (i+1, len(msg_pieces), piece),
                     'mode': 'lite'
                 }
                 self.client.request('/statuses/update', 'POST', body)
@@ -61,13 +61,11 @@ class FanfouClient:
     def send_dm(self, msg='test', user_id=None):
         user_id = user_id.encode('utf-8')
         if len(msg) > 140:
-            num_msg_piece = int(math.ceil(len(msg) / 130.0))
-            for piece in range(num_msg_piece):
+            msg_pieces = self.split_msg(msg)
+            for i, piece in enumerate(msg_pieces):
                 body = {
                     'user': user_id,
-                    'text': '(%d/%d) %s' % (piece+1, num_msg_piece,
-                            msg[130 * piece: 130 * piece + 130].encode('utf-8')
-                    ),
+                    'text': '(%d/%d) %s' % (i + 1, len(msg_pieces), piece),
                     'mode': 'lite'
                 }
                 self.client.request('/direct_messages/new', 'POST', body)
@@ -78,8 +76,6 @@ class FanfouClient:
                 'mode': 'lite'
             }
             self.client.request('/direct_messages/new', 'POST', body)
-    
+
     def delete_dm(self, dm_id):
         self.client.request('/direct_messages/destroy', 'POST', {'id': dm_id})
-
-client = FanfouClient()

@@ -27,15 +27,17 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
         return u'还没有创建任务'
     if data.startswith('!msg'):
         msg_type = data.split()[1].strip()
-        if msg_type in ('public', 'private'):
+        if msg_type in ('public', 'private', 'off'):
             user.msg_type = msg_type
             db.session.commit()
         else:
             return u'错误的消息类型'
         if msg_type == 'private':
             return u'提醒将以[私信]形式发送'
-        else:
+        elif msg_type == 'public':
             return u'提醒将以[消息]形式发送'
+        else:
+            return u'不再发送每天定时提醒消息'
 
     if data.startswith('!list'):
         data = data.split()
@@ -53,7 +55,7 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
             tasks = []
         return format_task_list(tasks)
 
-    # all the following command will modify specified task
+    # all the following commands will modify specified task
     data = data.split()
     if len(data) < 2:
         return u'没有指定任务序号'
@@ -61,7 +63,7 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
     try:
         task_id = int(data[1]) - 1
     except:
-        return u'wrong task id'
+        return u'错误的任务序号'
     task = Task.query.filter_by(user=user).offset(task_id).first()
     if not task:
         return u'没有找到指定任务'
@@ -80,7 +82,7 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
         except:
             db.session.rollback()
             return u'任务状态修改失败'
-        return u'任务[%s]的状态已变为[%s]' % (task.task, task.status)
+        return u'任务[%s]的状态已变更为[%s]' % (task.task, task.status)
     if command.startswith('!due'):
         if len(data) > 2:
             due = dp.parse(' '.join(data[2:]))
@@ -91,7 +93,7 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
             db.session.commit()
         else:
             return u'错误的时间格式'
-        return u'任务[%s]的截止时间已变为[%s]' % (task.task,
+        return u'任务[%s]的截止时间已变更为[%s]' % (task.task,
                 task.due_date.strftime('%F %T'))
 
 def parse_task(user_id, data, user_name, msg_type):

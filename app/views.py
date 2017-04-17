@@ -3,9 +3,20 @@ from flask import request, url_for, jsonify
 from . import app
 from .task import parse_msg, format_task_list
 from .models import db, User, Task, MessageID
-from .message import client
+from .message import FanfouClient
 from datetime import datetime
 from dateutil import parser
+
+client = FanfouClient(
+    {
+        'key': app.config.get('FANFOU_CONSUMER_KEY'),
+        'secret': app.config.get('FANFOU_CONSUMER_SECRET')
+    },
+    {
+        'key': app.config.get('FANFOU_AUTH_KEY'),
+        'secret': app.config.get('FANFOU_AUTH_SECRET')
+    }
+)
 
 def htmlec(s):
     el = {'&lt;': '<', '&gt;': '>', '&quot;': '"', '&amp;': '&'}
@@ -37,17 +48,17 @@ def check_msg(msg_num):
             if not item['text'].startswith('@TodoBot'):
                 continue
             text = item['text'].replace('@TodoBot ', '').strip()
-            text.replace('@', '#')
+            text = text.replace('@', '#')
             user_id = item['user']['id']
             user_name = item['user']['name']
             reply = parse_msg(user_id, text, user_name)
             user = User.query.filter_by(user_id=user_id).first()
             if not user:
-                reply = 'no tasks'
-            if user.msg_type == 'private':
-                client.send_dm(reply, user_id)
-            else:
+                reply = u'没有任务'
+            if not user or user.msg_type == 'public':
                 client.send_msg(reply, user_id, user_name)
+            else:
+                client.send_dm(reply, user_id)
             processed_msg += 1
     newest_msg.message_id = newest_msg_id
     newest_msg.message_ts = newest_msg_ts
@@ -76,15 +87,15 @@ def check_dm(dm_num):
                 newest_msg_ts = msg_timestamp
                 newest_msg_id = item['id']
             text = htmlec(item['text'].strip())
-            text.replace('@', '#')
+            text = text.replace('@', '#')
             user_id = item['sender']['id']
             user_name = item['sender']['name']
             client.delete_dm(item['id'])
             reply = parse_msg(user_id, text, user_name, 'private')
             user = User.query.filter_by(user_id=user_id).first()
             if not user:
-                reply = 'no tasks'
-            if user.msg_type == 'private':
+                reply = u'没有任务'
+            if not user or user.msg_type == 'private':
                 client.send_dm(reply, user_id)
             else:
                 client.send_msg(reply, user_id, user_name)
@@ -97,7 +108,6 @@ def check_dm(dm_num):
 @app.route('/check')
 def check():
     msg_num, dm_num = client.get_notification()
-    app.logger.debug('#msg %d #dm %d' % (msg_num, dm_num))
     processed_msg = processed_dm = 0
     if msg_num > 0:
         processed_msg = check_msg(msg_num)
@@ -114,6 +124,6 @@ def notify():
             continue
         if user.msg_type == 'private':
             client.send_dm(format_task_list(tasks), user.user_id)
-        else:
+        elif user.msg_type == 'public':
             client.send_msg(format_task_list(tasks), user.user_id, user.user_name)
     return 'finished daily notification for %d users' % len(users)
