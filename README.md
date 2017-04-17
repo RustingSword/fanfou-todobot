@@ -16,7 +16,7 @@
 2. 删除任务: `!del[ete] task_id`
 3. 完成任务: `!finish(done) task_id`
 4. 修改截止日期: `!due task_id due_date`
-5. 修改提醒方式: `!msg msg_type`
+5. 修改提醒方式: `!msg public/private/off`
 
 命令消息格式:
 
@@ -61,12 +61,11 @@
 
 #### 修改提醒方式
 
-    !msg msg_type
+    !msg public/private/off
 
-- `msg_type`:
-  - `private`: 通过私信发送提醒消息
-  - `public`: 通过@发送提醒消息
-  - `off`: 停止发送每天定时提醒消息
+- `private`: 通过私信发送提醒消息
+- `public`: 通过@发送提醒消息
+- `off`: 停止发送每天定时提醒消息
 
 当新用户加入时，如果通过私信创建任务，默认通过私信提醒，如果通过@TodoBot创建任务，默认通过@提醒，可以通过`!msg`命令更改提醒方式
 
