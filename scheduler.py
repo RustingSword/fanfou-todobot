@@ -6,12 +6,18 @@ import requests
 from datetime import datetime
 
 def check():
-    r = requests.get('http://127.0.0.1:8001/check')
-    print datetime.now(), r.text
+    try:
+        r = requests.get('http://127.0.0.1:8001/check')
+        print datetime.now(), r.text
+    except Exception as e:
+        print datetime.now(), 'error checking:' + repr(e)
 
 def notify():
-    r = requests.get('http://127.0.0.1:8001/notify')
-    print datetime.now(), r.text
+    try:
+        r = requests.get('http://127.0.0.1:8001/notify')
+        print datetime.now(), r.text
+    except Exception as e:
+        print datetime.now(), 'error notifying:' + repr(e)
 
 schedule.every(1).minutes.do(check)
 schedule.every().day.at("07:30").do(notify)

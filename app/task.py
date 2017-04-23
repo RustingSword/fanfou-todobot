@@ -6,8 +6,9 @@ import dateparser as dp
 def format_task_list(tasks):
     if tasks:
         return '\n'.join([
-            '%d %s | %s' % (i + 1, t.task, t.due_date.strftime('%F %T') if
-                t.due_date else '') for i, t in enumerate(tasks)]
+            '%d %s | %s | %s' % (i + 1, t.task, t.status,
+                t.due_date.strftime('%F %T') if t.due_date else '') \
+                        for i, t in enumerate(tasks)]
         )
     return u'没有任务'
 
