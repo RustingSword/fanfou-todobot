@@ -12,6 +12,8 @@
 
 2. Q: 怎么关闭每天的提醒？A: 给@TodoBot发送`!msg off`。如果想恢复每天的提醒，给@TodoBot发送`!msg public`或`!msg private`，见[修改提醒方式](#修改提醒方式)。
 
+3. Q: 为什么不能给@TodoBot发送私信？A: 很可能是因为你在用某个客户端，饭否API需要有相应的权限才能发送私信，见[饭否API文档](https://github.com/FanfouAPI/FanFouAPIDoc/wiki/direct-messages.new)。网页版可以正常发送私信。
+
 ## 消息类型
 
 ### 命令消息
