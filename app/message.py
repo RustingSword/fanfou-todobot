@@ -59,7 +59,8 @@ class FanfouClient:
             msg_pieces = self.split_msg(msg)
             for i, piece in enumerate(msg_pieces):
                 body = {
-                    'status': '@%s\n(%d/%d) %s' % (i+1, len(msg_pieces), piece),
+                    'status': '@%s (%d/%d) %s' % (user_name, i+1, len(msg_pieces), piece),
+                    'in_reply_to_user_id': user_id,
                     'mode': 'lite'
                 }
                 try:
@@ -68,7 +69,8 @@ class FanfouClient:
                     print 'error sending msg: ' + repr(e)
         else:
             body = {
-                'status': '@%s\n%s' % (user_name, msg.encode('utf-8')),
+                'status': '@%s %s' % (user_name, msg.encode('utf-8')),
+                'in_reply_to_user_id': user_id,
                 'mode': 'lite'
             }
             try:
