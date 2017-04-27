@@ -65,7 +65,7 @@ def parse_msg(user_id, data, user_name=None, msg_type='public'):
         task_id = int(data[1]) - 1
     except:
         return u'错误的任务序号'
-    task = Task.query.filter_by(user=user).offset(task_id).first()
+    task = Task.query.filter_by(user=user).filter_by(status='todo').offset(task_id).first()
     if not task:
         return u'没有找到指定任务'
     if command.startswith('!del'):
