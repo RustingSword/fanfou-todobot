@@ -1,0 +1,6 @@
+flask
+schedule
+requests
+flask_sqlalchemy
+dateparser
+gunicorn

@@ -3,6 +3,7 @@
 import schedule
 import time
 import requests
+import sys
 from datetime import datetime
 
 def check():
@@ -24,4 +25,5 @@ schedule.every().day.at("07:30").do(notify)
 
 while True:
     schedule.run_pending()
+    sys.stdout.flush()
     time.sleep(1)
