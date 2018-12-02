@@ -25,7 +25,7 @@
 3. 完成任务: `!finish(done) task_id`
 4. 修改截止日期: `!due task_id due_date`
 5. 修改提醒方式: `!msg public/private/off`
-6. 修改提醒时间: `!msg task_id remind_time`
+6. 修改提醒时间: `!remind task_id remind_time`
 7. 修改提醒频率: `!freq task_id once/daily/weekly/monthly/yearly`
 
 命令消息格式:
