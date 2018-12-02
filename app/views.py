@@ -1,11 +1,13 @@
 #! coding: utf-8
-from flask import request, url_for, jsonify
-from . import app
-from .task import parse_msg, format_task_list
-from .models import db, User, Task, MessageID
-from .message import FanfouClient
+''' views definition '''
 from datetime import datetime
 from dateutil import parser
+from flask import request, url_for, jsonify
+import utils
+from . import app
+from .task import parse_msg
+from .models import db, User, Task, MessageID
+from .message import FanfouClient
 
 client = FanfouClient(
     {
@@ -18,40 +20,44 @@ client = FanfouClient(
     }
 )
 
-def htmlec(s):
-    el = {'&lt;': '<', '&gt;': '>', '&quot;': '"', '&amp;': '&'}
-    for k, v in el.items():
-        s = s.replace(k, v)
-    return s
-
-def check_msg(msg_num):
-    newest_msg = MessageID.query.filter_by(name='msg').first()
+def check_msg(msg_num, msg_type='msg'):
+    if msg_type not in ('msg', 'dm'):
+        return 0
+    newest_msg = MessageID.query.filter_by(name=msg_type).first()
     if newest_msg:
         newest_msg_id = newest_msg.message_id
         newest_msg_ts = newest_msg.message_ts
     else:
         newest_msg_id = None
         newest_msg_ts = datetime.fromtimestamp(0)
-        newest_msg = MessageID(name='msg', message_id='',
-                message_ts=newest_msg_ts)
+        newest_msg = MessageID(name=msg_type, message_id='',
+                               message_ts=newest_msg_ts)
         db.session.add(newest_msg)
     count = min(60, msg_num)
     pages = msg_num / count + 2
     processed_msg = 0
     for page in range(1, pages):
-        messages = client.get_msg_list(count, page, newest_msg_id)
+        if msg_type == 'msg':
+            messages = client.get_msg_list(count, page, newest_msg_id)
+        else:
+            messages = client.get_dm_list(count, page, newest_msg_id)
         for item in messages:
-            msg_timestamp = parser.parse(item['created_at']).replace(tzinfo=None)
-            if newest_msg_ts < msg_timestamp:
-                newest_msg_ts = msg_timestamp
+            msg_ts = parser.parse(item['created_at']).replace(tzinfo=None)
+            if newest_msg_ts < msg_ts:
+                newest_msg_ts = msg_ts
                 newest_msg_id = item['id']
-            if not item['text'].startswith('@TodoBot'):
+            if msg_type == 'msg' and not item['text'].startswith('@TodoBot'):
                 continue
-            text = item['text'].replace('@TodoBot ', '').strip()
+            text = utils.htmlec(item['text'].replace('@TodoBot ', '').strip())
             text = text.replace('@', '#')
-            user_id = item['user']['id']
-            user_name = item['user']['name']
-            reply = parse_msg(user_id, text, user_name)
+            if msg_type == 'msg':
+                user_id = item['user']['id']
+                user_name = item['user']['name']
+                reply = parse_msg(user_id, text, user_name)
+            else:
+                user_id = item['sender']['id']
+                user_name = item['sender']['name']
+                reply = parse_msg(user_id, text, user_name, 'private')
             user = User.query.filter_by(user_id=user_id).first()
             if not user:
                 reply = u'没有任务'
@@ -65,65 +71,36 @@ def check_msg(msg_num):
     db.session.commit()
     return processed_msg
 
-def check_dm(dm_num):
-    newest_msg = MessageID.query.filter_by(name='dm').first()
-    if newest_msg:
-        newest_msg_id = newest_msg.message_id
-        newest_msg_ts = newest_msg.message_ts
-    else:
-        newest_msg_id = None
-        newest_msg_ts = datetime.fromtimestamp(0)
-        newest_msg = MessageID(name='dm', message_id='',
-                message_ts=newest_msg_ts)
-        db.session.add(newest_msg)
-    count = min(60, dm_num)
-    pages = dm_num / count + 2
-    processed_dm = 0
-    for page in range(1, pages):
-        direct_messages = client.get_dm_list(count, page, newest_msg_id)
-        for item in direct_messages:
-            msg_timestamp = parser.parse(item['created_at']).replace(tzinfo=None)
-            if newest_msg_ts < msg_timestamp:
-                newest_msg_ts = msg_timestamp
-                newest_msg_id = item['id']
-            text = htmlec(item['text'].strip())
-            text = text.replace('@', '#')
-            user_id = item['sender']['id']
-            user_name = item['sender']['name']
-            client.delete_dm(item['id'])
-            reply = parse_msg(user_id, text, user_name, 'private')
-            user = User.query.filter_by(user_id=user_id).first()
-            if not user:
-                reply = u'没有任务'
-            if not user or user.msg_type == 'private':
-                client.send_dm(reply, user_id)
-            else:
-                client.send_msg(reply, user_id, user_name)
-            processed_dm += 1
-    newest_msg.message_id = newest_msg_id
-    newest_msg.message_ts = newest_msg_ts
-    db.session.commit()
-    return processed_dm
-
 @app.route('/check')
 def check():
+    ''' check for new mention messages and direct messages '''
     msg_num, dm_num = client.get_notification()
     processed_msg = processed_dm = 0
     if msg_num > 0:
         processed_msg = check_msg(msg_num)
     if dm_num > 0:
-        processed_dm = check_dm(dm_num)
+        processed_dm = check_msg(dm_num, msg_type='dm')
     return 'done checking, #msg %d #dm %d' % (processed_msg, processed_dm)
 
 @app.route('/notify')
 def notify():
+    ''' send notification for tasks scheduled '''
     users = User.query.all()
+    now = datetime.now()
     for user in users:
         tasks = Task.query.filter_by(user=user).filter_by(status='todo').all()
-        if not tasks:
+        to_notify = [
+            t for t in tasks if utils.should_notify(now, t.reminder_time)
+        ]
+        if not to_notify:
             continue
         if user.msg_type == 'private':
-            client.send_dm(format_task_list(tasks), user.user_id)
+            client.send_dm(utils.format_task_list(to_notify), user.user_id)
         elif user.msg_type == 'public':
-            client.send_msg(format_task_list(tasks), user.user_id, user.user_name)
-    return 'finished daily notification for %d users' % len(users)
+            client.send_msg(utils.format_task_list(to_notify), user.user_id,
+                            user.user_name)
+        for task in to_notify:
+            task.reminder_time = utils.next_notify_ts(task.reminder_time,
+                                                      task.reminder_frequency)
+    db.session.commit()
+    return 'finished notification for %d users' % len(users)

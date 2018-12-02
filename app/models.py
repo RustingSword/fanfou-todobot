@@ -1,7 +1,8 @@
 #! coding: utf-8
+''' database definition '''
+from datetime import datetime
 from . import app
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
 
 db = SQLAlchemy(app)
 
@@ -26,15 +27,36 @@ class Task(db.Model):
     status = db.Column(db.String(10), nullable=False, default='todo')
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now,
-            onupdate=datetime.now)
+                            onupdate=datetime.now)
+    reminder_time = db.Column(db.DateTime)
+    # 'once', 'hourly', 'daily', 'weekly', 'monthly', 'yearly'
+    reminder_frequency = db.Column(db.String, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', backref=db.backref('tasks', lazy='dynamic'))
     __mapper_args__ = {
         "order_by": due_date
     }
 
+    def brief_info(self):
+        ''' brief info used in notification '''
+        return '%s%s%s' % (
+            self.task,
+            ' | status: ' + self.status,
+            ' | due: ' + self.due_date.strftime('%F %T') if self.due_date else ''
+        )
+
+    def detail_info(self):
+        ''' detail info used in list command '''
+        return '%s | status: %s | due: %s | remind: %s | freq: %s' % (
+            self.task,
+            self.status,
+            self.due_date.strftime('%F %T') if self.due_date else '',
+            self.reminder_time.strftime('%F %T') if self.reminder_time else '',
+            self.reminder_frequency
+        )
+
     def __repr__(self):
-        return '<Task %r>' % self.id
+        return self.detail_info()
 
 class MessageID(db.Model):
     __tablename__ = 'messageid'
