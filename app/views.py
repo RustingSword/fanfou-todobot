@@ -87,6 +87,8 @@ def notify():
     ''' send notification for tasks scheduled '''
     users = User.query.all()
     now = datetime.now()
+    notified_user = 0
+    notified_task = 0
     for user in users:
         tasks = Task.query.filter_by(user=user).filter_by(status='todo').all()
         to_notify = [
@@ -102,5 +104,7 @@ def notify():
         for task in to_notify:
             task.reminder_time = utils.next_notify_ts(task.reminder_time,
                                                       task.reminder_frequency)
+        notified_task += len(to_notify)
+        notified_user += 1
     db.session.commit()
-    return 'finished notification for %d users' % len(users)
+    return 'sent %d msgs for %d users' % (notified_task, notified_user)
