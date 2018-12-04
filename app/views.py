@@ -92,7 +92,7 @@ def notify():
     for user in users:
         tasks = Task.query.filter_by(user=user).filter_by(status='todo').all()
         to_notify = [
-            t for t in tasks if utils.should_notify(now, t.reminder_time)
+            (i, t) for i, t in enumerate(tasks, start=1) if utils.should_notify(now, t.reminder_time)
         ]
         if not to_notify:
             continue
@@ -101,10 +101,11 @@ def notify():
         elif user.msg_type == 'public':
             client.send_msg(utils.format_task_list(to_notify), user.user_id,
                             user.user_name)
-        for task in to_notify:
+        for (_, task) in to_notify:
             task.reminder_time = utils.next_notify_ts(task.reminder_time,
                                                       task.reminder_frequency)
         notified_task += len(to_notify)
         notified_user += 1
-    db.session.commit()
+    if notified_user:
+        db.session.commit()
     return 'sent %d msgs for %d users' % (notified_task, notified_user)

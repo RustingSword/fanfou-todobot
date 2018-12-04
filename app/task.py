@@ -20,7 +20,8 @@ def process_list_cmd(user, task_type):
         tasks = Task.query.all()
     else:
         tasks = []
-    return utils.format_task_list(tasks, brief=False)
+    task_list = [(i, t) for i, t in enumerate(tasks, start=1)]
+    return utils.format_task_list(task_list, brief=False)
 
 def process_msg_cmd(user, msg_type):
     ''' !msg command '''

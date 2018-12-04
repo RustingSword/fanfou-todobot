@@ -12,8 +12,8 @@ def format_task_list(tasks, brief=True):
     ''' build reply string from task list '''
     if tasks:
         return '\n'.join(
-            ['%d) %s' % (i + 1, t.brief_info() if brief else t.detail_info()) \
-                        for i, t in enumerate(tasks)]
+            ['%d) %s' % (i, t.brief_info() if brief else t.detail_info()) \
+                        for (i, t) in tasks]
         )
     return u'没有任务'
 
