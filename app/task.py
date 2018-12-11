@@ -158,6 +158,7 @@ def parse_task(user_id, data, user_name, msg_type):
         cols = data.split('|')
         task = cols[0].strip()
         due = dp.parse(cols[1])
+        reminder_time = dp.parse('tomorrow 7:30')
         if len(cols) > 2:
             reminder_time = dp.parse(cols[2])
             if reminder_time is None:
