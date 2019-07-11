@@ -20,7 +20,7 @@ client = FanfouClient(
     }
 )
 
-def check_msg(msg_num, msg_type='msg'):
+def check_msg(msg_num=60, msg_type='msg'):
     if msg_type not in ('msg', 'dm'):
         return 0
     newest_msg = MessageID.query.filter_by(name=msg_type).first()
@@ -74,12 +74,8 @@ def check_msg(msg_num, msg_type='msg'):
 @app.route('/check')
 def check():
     ''' check for new mention messages and direct messages '''
-    # msg_num, dm_num = client.get_notification()
-    msg_num = client.get_notification_num()
-    processed_msg = processed_dm = 0
-    if msg_num > 0:
-        processed_msg = check_msg(msg_num)
-        processed_dm = check_msg(msg_num, msg_type='dm')
+    processed_msg = check_msg()
+    processed_dm = check_msg(msg_type='dm')
     return 'done checking, #msg %d #dm %d' % (processed_msg, processed_dm)
 
 @app.route('/notify')
