@@ -10,6 +10,17 @@ class FanfouClient:
     def __init__(self, consumer_token, access_token):
         self.client = fanfou.OAuth(consumer_token, access_token)
 
+    def get_notification_num(self):
+        ''' get the unread number of mention/direct messages '''
+        body = dict(mode='lite')
+        try:
+            resp = self.client.request('/account/notify_num', 'GET', body)
+        except Exception as e:
+            print('error getting notification: ' + repr(e))
+            return 0
+        data = json.loads(resp.read())
+        return data.get('notify_num', 0)
+
     def get_notification(self):
         ''' get the unread number of mention/direct messages '''
         body = dict(mode='lite')
