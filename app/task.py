@@ -152,7 +152,7 @@ def parse_task(user_id, data, user_name, msg_type):
     ''' create a new task '''
     task = data
     due = None
-    reminder_time = None
+    reminder_time = dp.parse('tomorrow 7:30')
     reminder_frequency = 'daily'
     if '|' in data:
         cols = data.split('|')

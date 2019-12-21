@@ -19,6 +19,9 @@ def format_task_list(tasks, brief=True):
 
 def should_notify(now, scheduled):
     ''' minute level precision '''
+
+    if not scheduled:
+        return False
     return ((now.year == scheduled.year)   and
             (now.month == scheduled.month) and
             (now.day == scheduled.day)     and
